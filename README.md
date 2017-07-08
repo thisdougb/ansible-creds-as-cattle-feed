@@ -1,7 +1,7 @@
 # ansible-creds-as-cattle-feed
 Vagrant and Ansible code to demo automatically generated passwords, using Postgres replication as an example.   Built for Centos/RHEL.
 
-Demo screencast: 
+Demo screencast: https://vimeo.com/224764672
 
 ### Create Vagrant Instances
 Create Vagrant instances to run the vault, see the sub-dir _vagrant_ from this repo.
