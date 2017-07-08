@@ -50,3 +50,32 @@ laptop $ cat etc_hosts
 172.28.128.17	node3	node3.example.com
 ```
 The next step is typically to bootstrap the new instances with the _bootstrap_hosts.yml_ Ansible playbook in the root of the project repo.
+
+## Ansible Bootstrap
+```
+ansible-playbook bootstrap.yml -k -K
+SSH password: 
+SUDO password[defaults to SSH password]: 
+
+PLAY [all] *******************************************************************************
+
+TASK [install Ansible ssh key] ***********************************************************
+changed: [node3]
+changed: [node1]
+changed: [node2]
+
+TASK [install /etc/hosts on remote] ******************************************************
+changed: [node1]
+changed: [node3]
+changed: [node2]
+
+TASK [install net-tools] *****************************************************************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+PLAY RECAP *******************************************************************************
+node1                      : ok=3    changed=3    unreachable=0    failed=0   
+node2                      : ok=3    changed=3    unreachable=0    failed=0   
+node3                      : ok=3    changed=3    unreachable=0    failed=0 
+```
