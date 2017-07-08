@@ -1,7 +1,11 @@
 ---
 # tasks file for roles/postgres-slave
+- name: stop postgres
+  service:
+    name: postgresql
+    state: stopped
 
-- name: clear out the postgres data dir
+- name: clear out the postgres data dir, incase this was a failover
   file:
     path: /var/lib/pgsql/data
     state: absent
@@ -14,13 +18,15 @@
     group: postgres
     mode: 0700
 
-- name: generate the replication password
+- name: explicit charset for greater control on password string
   set_fact:
-    repl_passwd: "{{ lookup('password', '/dev/null') }}"
-  tags:
-    - rotate_credentials
+    rand_charset: '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-\'
 
-- name: ensure replication user on the master is present
+- name: generate a random string, length and charset may be application specific
+  set_fact:
+    repl_passwd: "{{ lookup('password', '/dev/null length=20 chars={{ rand_charset }}') }}"
+
+- name: ensure replication user, for this node, on the master is present
   postgresql_user:
     name: "repl_{{ inventory_hostname }}"
     password: "{{ repl_passwd }}"
@@ -28,11 +34,8 @@
     role_attr_flags: REPLICATION,LOGIN
     state: present
   delegate_to: "{{ groups.master[0] }}"
-  tags:
-    - rotate_credentials
 
-# setup replication access for this slave on master in pg_hba.conf
-- name: add this slave to pg_hba.conf
+- name: add this slave to master pg_hba.conf
   lineinfile:
     line: "host  replication      repl_{{ inventory_hostname }}      {{ ansible_all_ipv4_addresses[1] }}/32         md5"
     state: present
@@ -44,7 +47,7 @@
   become_user: postgres
   delegate_to: "{{ groups.master[0] }}"
 
-- name: suck over the master data
+- name: suck over the master data to prep for replication
   command: "pg_basebackup -h {{ groups.master[0] }} -D /var/lib/pgsql/data -U repl_{{ inventory_hostname }} --xlog-method=stream"
   environment:
     PGPASSWORD: "{{ repl_passwd }}"
@@ -57,8 +60,6 @@
     owner: postgres
     group: postgres
     mode: 0600
-  tags:
-    - rotate_credentials
 
 - name: install postgres.conf
   template:
@@ -73,5 +74,3 @@
     name: postgresql
     state: restarted
     enabled: yes
-  tags:
-    - rotate_credentials
