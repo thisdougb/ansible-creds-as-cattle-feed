@@ -20,7 +20,7 @@
 
 - name: explicit charset for greater control on password string
   set_fact:
-    rand_charset: '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-\'
+    rand_charset: '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-'
 
 - name: generate a random string, length and charset may be application specific
   set_fact:
