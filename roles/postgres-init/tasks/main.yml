@@ -1,0 +1,25 @@
+---
+# tasks file for roles/postgres-init
+
+- name: ensure postgres data dir exists
+  file:
+    path: /var/lib/pgsql/data
+    state: directory
+    mode: 0700
+    owner: postgres
+    group: postgres
+
+- name: check pgsql data dir contents
+  command: ls /var/lib/pgsql/data
+  register: contents
+
+- name: init postgres data dir
+  command: initdb -D /var/lib/pgsql/data
+  become_user: postgres
+  when: contents.stdout == ""
+
+- name: start postgres
+  service:
+    name: postgresql
+    state: started
+    enabled: yes

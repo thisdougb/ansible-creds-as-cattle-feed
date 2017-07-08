@@ -1,0 +1,74 @@
+# -----------------------------
+# PostgreSQL configuration file
+# -----------------------------
+#
+#------------------------------------------------------------------------------
+# FILE LOCATIONS
+#------------------------------------------------------------------------------
+
+#data_directory = 'ConfigDir'		# use data in another directory
+#hba_file = 'ConfigDir/pg_hba.conf'	# host-based authentication file
+#ident_file = 'ConfigDir/pg_ident.conf'	# ident configuration file
+					# (change requires restart)
+
+#------------------------------------------------------------------------------
+# CONNECTIONS AND AUTHENTICATION
+#------------------------------------------------------------------------------
+
+listen_addresses = 'localhost'		# what IP address(es) to listen on;
+#port = 5432				# (change requires restart)
+max_connections = 100			# (change requires restart)
+
+# - Security and Authentication -
+#authentication_timeout = 1min		# 1s-600s
+#ssl = off				# (change requires restart)
+#ssl_ciphers = 'ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH'	# allowed SSL ciphers
+#ssl_renegotiation_limit = 0		# amount of data between renegotiations
+#ssl_cert_file = 'server.crt'		# (change requires restart)
+#ssl_key_file = 'server.key'		# (change requires restart)
+#ssl_ca_file = ''			# (change requires restart)
+#ssl_crl_file = ''			# (change requires restart)
+
+#------------------------------------------------------------------------------
+# RESOURCE USAGE (except WAL)
+#------------------------------------------------------------------------------
+
+# - Memory -
+
+shared_buffers = 32MB			# min 128kB
+
+#------------------------------------------------------------------------------
+# WRITE AHEAD LOG
+#------------------------------------------------------------------------------
+
+wal_level = minimal			# minimal, archive, or hot_standby
+archive_mode = off		# allows archiving to be done
+
+#------------------------------------------------------------------------------
+# REPLICATION
+#------------------------------------------------------------------------------
+
+# - Standby Servers -
+hot_standby = on			# "on" allows queries during recovery
+
+#------------------------------------------------------------------------------
+# QUERY TUNING
+#------------------------------------------------------------------------------
+
+logging_collector = on			# Enable capturing of stderr and csvlog
+log_filename = 'postgresql-%a.log'	# log file name pattern,
+log_truncate_on_rotation = on		# If on, an existing log file with the
+log_rotation_age = 1d			# Automatic rotation of logfiles will
+log_rotation_size = 0			# Automatic rotation of logfiles will
+log_timezone = 'GB'
+
+
+datestyle = 'iso, dmy'
+timezone = 'GB'
+lc_messages = 'en_GB.UTF-8'			# locale for system error message
+lc_monetary = 'en_GB.UTF-8'			# locale for monetary formatting
+lc_numeric = 'en_GB.UTF-8'			# locale for number formatting
+lc_time = 'en_GB.UTF-8'				# locale for time formatting
+
+# default configuration for text search
+default_text_search_config = 'pg_catalog.english'

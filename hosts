@@ -1,0 +1,6 @@
+[master]
+node1
+
+[slaves]
+node2
+node3

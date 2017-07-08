@@ -1,0 +1,16 @@
+---
+# tasks file for roles/postgres-master-repl
+
+# setup listen address in postgresql.conf
+- name: install master version of postgresql.conf
+  template:
+    src: postgresql.conf.j2
+    dest: /var/lib/pgsql/data/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: 0600
+
+- name: restart postgres
+  service:
+    name: postgresql
+    state: restarted

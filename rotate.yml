@@ -1,0 +1,36 @@
+---
+- hosts: slaves
+  tasks:
+
+  - name: explicit charset for greater control
+    set_fact:
+      rand_charset: '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-\'
+
+  - name: generate a random string, length and charset may be application specific
+    set_fact:
+      repl_passwd: "{{ lookup('password', '/dev/null length=20 chars={{ rand_charset }}') }}"
+  
+  - name: stop postgres on the slave
+    service:
+      name: postgresql
+      state: stopped
+
+  - name: ensure replication user on the master has correct credentials
+    postgresql_user:
+      name: "repl_{{ inventory_hostname }}"
+      password: "{{ repl_passwd }}"
+      encrypted: yes
+      role_attr_flags: REPLICATION,LOGIN
+      state: present
+    delegate_to: "{{ groups.master[0] }}"
+  
+  - name: update slave recovery.conf with new connection info
+    lineinfile:
+      path: /var/lib/pgsql/data/recovery.conf
+      regexp: '^primary_conninfo' 
+      line: "primary_conninfo = 'host={{ groups.master[0] }} port=5432 user=repl_{{ inventory_hostname }} password={{ repl_passwd }}'"
+  
+  - name: start postgres on the slave
+    service:
+      name: postgresql
+      state: started

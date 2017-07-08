@@ -1,0 +1,3 @@
+standby_mode = 'on'
+primary_conninfo = 'host={{ groups.master[0] }} port=5432 user=repl_{{ inventory_hostname }} password={{ repl_passwd }}'
+trigger_file = '/tmp/trigger'

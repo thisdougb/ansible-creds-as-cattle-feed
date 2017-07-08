@@ -1,0 +1,9 @@
+---
+domain: example.com
+hosts:
+  - name: node1
+    ip: 172.28.128.15
+  - name: node2
+    ip: 172.28.128.16
+  - name: node3
+    ip: 172.28.128.17

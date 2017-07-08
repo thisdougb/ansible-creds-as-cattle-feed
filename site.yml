@@ -1,0 +1,15 @@
+---
+- hosts: all
+  roles:
+    - role: postgres
+
+- hosts: master
+  roles:
+    - role: postgres-init
+    - role: postgres-master
+
+- hosts: slaves
+  gather_facts: yes
+  serial: 1
+  roles:
+    - role: postgres-slave

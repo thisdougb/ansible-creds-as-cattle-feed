@@ -1,0 +1,77 @@
+---
+# tasks file for roles/postgres-slave
+
+- name: clear out the postgres data dir
+  file:
+    path: /var/lib/pgsql/data
+    state: absent
+
+- name: recreate the postgres data dir
+  file:
+    path: /var/lib/pgsql/data
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0700
+
+- name: generate the replication password
+  set_fact:
+    repl_passwd: "{{ lookup('password', '/dev/null') }}"
+  tags:
+    - rotate_credentials
+
+- name: ensure replication user on the master is present
+  postgresql_user:
+    name: "repl_{{ inventory_hostname }}"
+    password: "{{ repl_passwd }}"
+    encrypted: yes
+    role_attr_flags: REPLICATION,LOGIN
+    state: present
+  delegate_to: "{{ groups.master[0] }}"
+  tags:
+    - rotate_credentials
+
+# setup replication access for this slave on master in pg_hba.conf
+- name: add this slave to pg_hba.conf
+  lineinfile:
+    line: "host  replication      repl_{{ inventory_hostname }}      {{ ansible_all_ipv4_addresses[1] }}/32         md5"
+    state: present
+    dest: /var/lib/pgsql/data/pg_hba.conf
+  delegate_to: "{{ groups.master[0] }}"
+
+- name: reload master config
+  command: /usr/bin/pg_ctl reload -D /var/lib/pgsql/data
+  become_user: postgres
+  delegate_to: "{{ groups.master[0] }}"
+
+- name: suck over the master data
+  command: "pg_basebackup -h {{ groups.master[0] }} -D /var/lib/pgsql/data -U repl_{{ inventory_hostname }} --xlog-method=stream"
+  environment:
+    PGPASSWORD: "{{ repl_passwd }}"
+  become_user: postgres
+
+- name: install recovery.conf
+  template:
+    src: recovery.conf.j2
+    dest: /var/lib/pgsql/data/recovery.conf
+    owner: postgres
+    group: postgres
+    mode: 0600
+  tags:
+    - rotate_credentials
+
+- name: install postgres.conf
+  template:
+    src: postgresql.conf.j2
+    dest: /var/lib/pgsql/data/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: 0600
+
+- name: restart slave
+  service:
+    name: postgresql
+    state: restarted
+    enabled: yes
+  tags:
+    - rotate_credentials
