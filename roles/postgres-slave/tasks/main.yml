@@ -21,14 +21,10 @@
 - name: generate a random string, length and charset may be application specific
   set_fact:
     repl_passwd: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters,digits,_!$') }}"
-  tags:
-    - rotate_creds
 
 - name: display credentials for demo
   debug:
     msg: "credentials: repl_{{ inventory_hostname }} / {{ repl_passwd }}"
-  tags:
-    - rotate_creds
 
 - name: ensure replication user, for this node, on the master is present
   postgresql_user:
@@ -38,8 +34,6 @@
     role_attr_flags: REPLICATION,LOGIN
     state: present
   delegate_to: "{{ groups.master[0] }}"
-  tags:
-    - rotate_creds
 
 - name: add this slave to master pg_hba.conf
   lineinfile:
@@ -66,8 +60,6 @@
     owner: postgres
     group: postgres
     mode: 0600
-  tags:
-    - rotate_creds
 
 - name: install postgres.conf
   template:
@@ -82,5 +74,3 @@
     name: postgresql
     state: restarted
     enabled: yes
-  tags:
-    - rotate_creds
