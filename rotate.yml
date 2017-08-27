@@ -2,14 +2,14 @@
 - hosts: slaves
   tasks:
 
-  - name: explicit charset for greater control
-    set_fact:
-      rand_charset: '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-'
-
   - name: generate a random string, length and charset may be application specific
     set_fact:
-      repl_passwd: "{{ lookup('password', '/dev/null length=20 chars={{ rand_charset }}') }}"
+      repl_passwd: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters,digits,_!$') }}"
   
+  - name: display credentials for demo
+    debug:
+      msg: "credentials: repl_{{ inventory_hostname }} / {{ repl_passwd }}"
+
   - name: stop postgres on the slave
     service:
       name: postgresql
